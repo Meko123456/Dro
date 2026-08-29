@@ -2,6 +2,8 @@ package io.github.meko123456.dro.ui.home
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -16,6 +18,9 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -38,7 +43,9 @@ data class OverlapBar(val row: ClockRow, val segments: List<Segment>)
 /**
  * A 24-hour bar per zone on the home zone's axis, working hours filled, with the window
  * where everyone is at work drawn across all bars and a marker at the current minute.
- * Tapping a bar edits that zone's working hours.
+ * Pressing or dragging on the bars scrubs a preview time ([onScrub]); tapping a zone's label
+ * edits its working hours. The scrub gesture has no accessible equivalent here — the screen
+ * offers a "Pick a time" dialog for that.
  */
 @Composable
 fun OverlapStrip(
@@ -46,10 +53,12 @@ fun OverlapStrip(
     home: ZoneId,
     dayLengthMinutes: Int,
     nowMinute: Int,
+    previewMinute: Int?,
     bars: List<OverlapBar>,
     shared: List<Segment>,
     twentyFourHour: Boolean,
     onEditHours: (ClockRow) -> Unit,
+    onScrub: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val sharedLabel = axisLabel(date, home, shared, twentyFourHour)
@@ -68,7 +77,18 @@ fun OverlapStrip(
                 modifier = Modifier.semantics { heading() },
             )
             bars.forEach { bar ->
-                StripRow(bar, date, home, dayLengthMinutes, nowMinute, shared, twentyFourHour, onClick = { onEditHours(bar.row) })
+                StripRow(
+                    bar = bar,
+                    date = date,
+                    home = home,
+                    dayLengthMinutes = dayLengthMinutes,
+                    nowMinute = nowMinute,
+                    previewMinute = previewMinute,
+                    shared = shared,
+                    twentyFourHour = twentyFourHour,
+                    onEdit = { onEditHours(bar.row) },
+                    onScrub = onScrub,
+                )
             }
             HourAxis(date, home, dayLengthMinutes, twentyFourHour)
         }
@@ -82,10 +102,13 @@ private fun StripRow(
     home: ZoneId,
     dayLengthMinutes: Int,
     nowMinute: Int,
+    previewMinute: Int?,
     shared: List<Segment>,
     twentyFourHour: Boolean,
-    onClick: () -> Unit,
+    onEdit: () -> Unit,
+    onScrub: (Int) -> Unit,
 ) {
+    val currentOnScrub by rememberUpdatedState(onScrub)
     val hours = bar.row.hours
     val local = "${TimeFormat.compact(hours.start, twentyFourHour)}–${TimeFormat.compact(hours.end, twentyFourHour)}"
     val spokenLocal = "${TimeFormat.spoken(hours.start, twentyFourHour)}–${TimeFormat.spoken(hours.end, twentyFourHour)}"
@@ -101,19 +124,38 @@ private fun StripRow(
     val track = MaterialTheme.colorScheme.surfaceVariant
     val overlay = SharedWindowColor(isSystemInDarkTheme()).copy(alpha = 0.8f)
     val marker = MaterialTheme.colorScheme.onSurface
+    val previewColor = MaterialTheme.colorScheme.primary
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClickLabel = "Edit working hours", onClick = onClick)
             .semantics(mergeDescendants = true) { contentDescription = description },
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Column(modifier = Modifier.width(100.dp)) {
+        Column(
+            modifier = Modifier
+                .width(100.dp)
+                .clickable(onClickLabel = "Edit working hours", onClick = onEdit),
+        ) {
             Text(bar.row.entry.city, style = MaterialTheme.typography.labelLarge, maxLines = 1, overflow = TextOverflow.Ellipsis)
             Text(local, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         Spacer(Modifier.width(8.dp))
-        Canvas(modifier = Modifier.weight(1f).height(22.dp)) {
+        Canvas(
+            modifier = Modifier
+                .weight(1f)
+                .height(22.dp)
+                .pointerInput(dayLengthMinutes) {
+                    fun minuteAt(x: Float) = (x / size.width * dayLengthMinutes).toInt().coerceIn(0, dayLengthMinutes - 1)
+                    detectTapGestures(onPress = { currentOnScrub(minuteAt(it.x)) })
+                }
+                .pointerInput(dayLengthMinutes) {
+                    fun minuteAt(x: Float) = (x / size.width * dayLengthMinutes).toInt().coerceIn(0, dayLengthMinutes - 1)
+                    detectDragGestures(
+                        onDragStart = { currentOnScrub(minuteAt(it.x)) },
+                        onDrag = { change, _ -> currentOnScrub(minuteAt(change.position.x)) },
+                    )
+                },
+        ) {
             val perMinute = size.width / dayLengthMinutes
             drawRoundRect(color = track, cornerRadius = androidx.compose.ui.geometry.CornerRadius(6f, 6f))
             bar.segments.forEach { drawSegment(it, perMinute, fill) }
@@ -121,6 +163,10 @@ private fun StripRow(
             if (nowMinute in 0 until dayLengthMinutes) {
                 val x = nowMinute * perMinute
                 drawLine(marker, Offset(x, 0f), Offset(x, size.height), strokeWidth = 3f)
+            }
+            if (previewMinute != null) {
+                val x = previewMinute * perMinute
+                drawLine(previewColor, Offset(x, -4f), Offset(x, size.height + 4f), strokeWidth = 6f)
             }
         }
     }

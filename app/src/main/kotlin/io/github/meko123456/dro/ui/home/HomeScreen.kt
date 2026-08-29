@@ -14,6 +14,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.AssistChip
+import androidx.compose.material3.InputChip
+import androidx.compose.material3.TextButton
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -41,6 +45,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import io.github.meko123456.dro.domain.OverlapFinder
 import io.github.meko123456.dro.domain.TimeFormat
 import io.github.meko123456.dro.domain.ZoneClock
 import io.github.meko123456.dro.droApp
@@ -54,6 +59,7 @@ fun HomeScreen() {
     val twentyFourHour = DateFormat.is24HourFormat(context)
     var showAdd by rememberSaveable { mutableStateOf(false) }
     var editingZone: String? by rememberSaveable { mutableStateOf(null) }
+    var pickingTime by rememberSaveable { mutableStateOf(false) }
 
     Scaffold(
         floatingActionButton = {
@@ -75,7 +81,15 @@ fun HomeScreen() {
             modifier = Modifier.fillMaxSize().padding(padding),
             contentPadding = PaddingValues(bottom = 96.dp),
         ) {
-            item(key = "home") { HomeHeader(ui.home, twentyFourHour) }
+            item(key = "home") { HomeHeader(ui.home, twentyFourHour, previewing = ui.previewing) }
+            item(key = "preview") {
+                PreviewBar(
+                    ui = ui,
+                    twentyFourHour = twentyFourHour,
+                    onPick = { pickingTime = true },
+                    onReset = { viewModel.preview(null) },
+                )
+            }
             item(key = "divider") { HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp)) }
             items(ui.cities, key = { it.zone.id }) { row ->
                 val index = ui.cities.indexOf(row)
@@ -96,13 +110,27 @@ fun HomeScreen() {
                     home = ui.home.zone,
                     dayLengthMinutes = ui.dayLengthMinutes,
                     nowMinute = ui.nowMinute,
+                    previewMinute = ui.previewMinute,
                     bars = ui.bars,
                     shared = ui.shared,
                     twentyFourHour = twentyFourHour,
                     onEditHours = { editingZone = it.zone.id },
+                    onScrub = { viewModel.preview(it) },
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp),
                 )
             }
+        }
+        if (pickingTime) {
+            PreviewTimeDialog(
+                initial = OverlapFinder.wallTime(ui.date, ui.home.zone, ui.previewMinute ?: ui.nowMinute),
+                twentyFourHour = twentyFourHour,
+                onPick = { time ->
+                    val minute = OverlapFinder.minuteOf(ui.date.atTime(time).atZone(ui.home.zone).toInstant(), ui.date, ui.home.zone)
+                    viewModel.preview(minute)
+                    pickingTime = false
+                },
+                onDismiss = { pickingTime = false },
+            )
         }
         val editing = ui.bars.firstOrNull { it.row.zone.id == editingZone }
         if (editing != null) {
@@ -126,9 +154,10 @@ fun HomeScreen() {
 
 /** The home zone: big clock, date, city. One semantics node. */
 @Composable
-private fun HomeHeader(row: ClockRow, twentyFourHour: Boolean) {
+private fun HomeHeader(row: ClockRow, twentyFourHour: Boolean, previewing: Boolean) {
     val reading = row.reading
-    val description = "Home, ${row.entry.city}, ${TimeFormat.spoken(reading.localTime, twentyFourHour)}, " +
+    val prefix = if (previewing) "Previewing" else "Home"
+    val description = "$prefix, ${row.entry.city}, ${TimeFormat.spoken(reading.localTime, twentyFourHour)}, " +
         TimeFormat.date(reading.localDate)
     Column(
         modifier = Modifier
@@ -137,12 +166,46 @@ private fun HomeHeader(row: ClockRow, twentyFourHour: Boolean) {
             .semantics(mergeDescendants = true) { contentDescription = description },
     ) {
         Text(
-            text = "Home · ${row.entry.city}",
+            text = "$prefix · ${row.entry.city}",
             style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            color = if (previewing) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
         )
         ClockText(reading.localTime, twentyFourHour, large = true)
         Text(TimeFormat.date(reading.localDate), style = MaterialTheme.typography.titleMedium)
+    }
+}
+
+/**
+ * "Pick a time" (the accessible route to previewing) and, while previewing, a chip naming the
+ * previewed home time with a Reset action.
+ */
+@Composable
+private fun PreviewBar(ui: HomeUiState, twentyFourHour: Boolean, onPick: () -> Unit, onReset: () -> Unit) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        val preview = ui.previewMinute
+        if (preview != null) {
+            val time = OverlapFinder.wallTime(ui.date, ui.home.zone, preview)
+            InputChip(
+                selected = true,
+                onClick = onReset,
+                label = { Text("Previewing ${TimeFormat.spoken(time, twentyFourHour)}") },
+                trailingIcon = { Icon(Icons.Default.Close, contentDescription = null) },
+                modifier = Modifier.semantics { contentDescription = "Previewing ${TimeFormat.spoken(time, twentyFourHour)}, tap to reset to now" },
+            )
+        } else {
+            Text(
+                text = "Drag on the bars below to preview a time",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.weight(1f),
+            )
+        }
+        if (preview == null) Spacer(Modifier.weight(0.01f))
+        TextButton(onClick = onPick) { Text("Pick a time") }
     }
 }
 
