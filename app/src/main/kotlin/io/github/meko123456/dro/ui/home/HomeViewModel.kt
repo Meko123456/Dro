@@ -9,6 +9,7 @@ import io.github.meko123456.dro.domain.ZoneCatalog
 import io.github.meko123456.dro.domain.ZoneClock
 import io.github.meko123456.dro.domain.ZoneEntry
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -62,6 +63,12 @@ class HomeViewModel(private val repository: SettingsRepository) : ViewModel() {
     val uiState: StateFlow<HomeUiState?> =
         combine(repository.settings, ticker) { settings, now -> HomeUiState.from(settings, now) }
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), null)
+
+    fun addCity(zone: ZoneId) = viewModelScope.launch { repository.addCity(zone) }
+    fun removeCity(zone: ZoneId) = viewModelScope.launch { repository.removeCity(zone) }
+    fun makeHome(zone: ZoneId) = viewModelScope.launch { repository.setHome(zone) }
+    fun moveCity(from: Int, to: Int) = viewModelScope.launch { repository.moveCity(from, to) }
+    fun setHours(zone: ZoneId, hours: WorkingHours) = viewModelScope.launch { repository.setHours(zone, hours) }
 
     private companion object {
         const val MINUTE_MS = 60_000L

@@ -12,7 +12,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -20,9 +28,13 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
@@ -40,8 +52,14 @@ fun HomeScreen() {
     val viewModel: HomeViewModel = viewModel { HomeViewModel(context.droApp.settings) }
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val twentyFourHour = DateFormat.is24HourFormat(context)
+    var showAdd by rememberSaveable { mutableStateOf(false) }
 
     Scaffold(
+        floatingActionButton = {
+            FloatingActionButton(onClick = { showAdd = true }) {
+                Icon(Icons.Default.Add, contentDescription = "Add city")
+            }
+        },
         topBar = {
             TopAppBar(title = {
                 Column {
@@ -59,8 +77,25 @@ fun HomeScreen() {
             item(key = "home") { HomeHeader(ui.home, twentyFourHour) }
             item(key = "divider") { HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp)) }
             items(ui.cities, key = { it.zone.id }) { row ->
-                CityRow(row, twentyFourHour)
+                val index = ui.cities.indexOf(row)
+                CityRow(
+                    row = row,
+                    twentyFourHour = twentyFourHour,
+                    canMoveUp = index > 0,
+                    canMoveDown = index < ui.cities.lastIndex,
+                    onMakeHome = { viewModel.makeHome(row.zone) },
+                    onMoveUp = { viewModel.moveCity(index, index - 1) },
+                    onMoveDown = { viewModel.moveCity(index, index + 1) },
+                    onRemove = { viewModel.removeCity(row.zone) },
+                )
             }
+        }
+        if (showAdd) {
+            AddCitySheet(
+                alreadyShown = (ui.cities.map { it.zone } + ui.home.zone).toSet(),
+                onPick = { viewModel.addCity(it); showAdd = false },
+                onDismiss = { showAdd = false },
+            )
         }
     }
 }
@@ -87,9 +122,23 @@ private fun HomeHeader(row: ClockRow, twentyFourHour: Boolean) {
     }
 }
 
-/** One city: name + region on the left, clock + offset on the right. One semantics node. */
+/**
+ * One city: name + region on the left, clock + offset on the right, and a menu with the row
+ * actions. The text merges into one semantics node; the menu button stays separate so a
+ * screen reader can reach "Make home" / "Remove" without a gesture.
+ */
 @Composable
-private fun CityRow(row: ClockRow, twentyFourHour: Boolean) {
+private fun CityRow(
+    row: ClockRow,
+    twentyFourHour: Boolean,
+    canMoveUp: Boolean,
+    canMoveDown: Boolean,
+    onMakeHome: () -> Unit,
+    onMoveUp: () -> Unit,
+    onMoveDown: () -> Unit,
+    onRemove: () -> Unit,
+) {
+    var menuOpen by rememberSaveable { mutableStateOf(false) }
     val reading = row.reading
     val shift = ZoneClock.dayShiftLabel(reading.dayShift)
     val description = listOfNotNull(
@@ -101,27 +150,45 @@ private fun CityRow(row: ClockRow, twentyFourHour: Boolean) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 24.dp, vertical = 14.dp)
-            .semantics(mergeDescendants = true) { contentDescription = description },
+            .padding(start = 24.dp, end = 8.dp, top = 6.dp, bottom = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Column(modifier = Modifier.weight(1f)) {
-            Text(row.entry.city, style = MaterialTheme.typography.titleMedium)
-            Text(
-                text = row.entry.region,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+        Row(
+            modifier = Modifier
+                .weight(1f)
+                .semantics(mergeDescendants = true) { contentDescription = description },
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(row.entry.city, style = MaterialTheme.typography.titleMedium)
+                Text(
+                    text = row.entry.region,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            Spacer(Modifier.width(16.dp))
+            Column(horizontalAlignment = Alignment.End) {
+                ClockText(reading.localTime, twentyFourHour, large = false)
+                Text(
+                    text = listOfNotNull(shift, ZoneClock.offsetLabel(reading.offsetMinutes)).joinToString(" · "),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.End,
+                )
+            }
         }
-        Spacer(Modifier.width(16.dp))
-        Column(horizontalAlignment = Alignment.End) {
-            ClockText(reading.localTime, twentyFourHour, large = false)
-            Text(
-                text = listOfNotNull(shift, ZoneClock.offsetLabel(reading.offsetMinutes)).joinToString(" · "),
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.End,
-            )
+        IconButton(
+            onClick = { menuOpen = true },
+            modifier = Modifier.clearAndSetSemantics { contentDescription = "Options for ${row.entry.city}" },
+        ) {
+            Icon(Icons.Default.MoreVert, contentDescription = null)
+        }
+        DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
+            DropdownMenuItem(text = { Text("Make home") }, onClick = { menuOpen = false; onMakeHome() })
+            DropdownMenuItem(text = { Text("Move up") }, enabled = canMoveUp, onClick = { menuOpen = false; onMoveUp() })
+            DropdownMenuItem(text = { Text("Move down") }, enabled = canMoveDown, onClick = { menuOpen = false; onMoveDown() })
+            DropdownMenuItem(text = { Text("Remove") }, onClick = { menuOpen = false; onRemove() })
         }
     }
 }
