@@ -49,6 +49,12 @@ import io.github.meko123456.dro.domain.OverlapFinder
 import io.github.meko123456.dro.domain.TimeFormat
 import io.github.meko123456.dro.domain.ZoneClock
 import io.github.meko123456.dro.droApp
+import io.github.meko123456.dro.widget.DroWidget
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -60,20 +66,43 @@ fun HomeScreen() {
     var showAdd by rememberSaveable { mutableStateOf(false) }
     var editingZone: String? by rememberSaveable { mutableStateOf(null) }
     var pickingTime by rememberSaveable { mutableStateOf(false) }
+    var topMenu by rememberSaveable { mutableStateOf(false) }
+    val snackbar = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
 
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbar) },
         floatingActionButton = {
             FloatingActionButton(onClick = { showAdd = true }) {
                 Icon(Icons.Default.Add, contentDescription = "Add city")
             }
         },
         topBar = {
-            TopAppBar(title = {
-                Column {
-                    Text("Dro", style = MaterialTheme.typography.titleLarge)
-                    Text("დრო", style = MaterialTheme.typography.labelMedium)
-                }
-            })
+            TopAppBar(
+                title = {
+                    Column {
+                        Text("Dro", style = MaterialTheme.typography.titleLarge)
+                        Text("დრო", style = MaterialTheme.typography.labelMedium)
+                    }
+                },
+                actions = {
+                    IconButton(
+                        onClick = { topMenu = true },
+                        modifier = Modifier.clearAndSetSemantics { contentDescription = "More options" },
+                    ) { Icon(Icons.Default.MoreVert, contentDescription = null) }
+                    DropdownMenu(expanded = topMenu, onDismissRequest = { topMenu = false }) {
+                        DropdownMenuItem(
+                            text = { Text("Add widget to home screen") },
+                            onClick = {
+                                topMenu = false
+                                if (!DroWidget.requestPin(context)) {
+                                    scope.launch { snackbar.showSnackbar("Your launcher doesn't support adding widgets from apps — long-press the home screen instead.") }
+                                }
+                            },
+                        )
+                    }
+                },
+            )
         },
     ) { padding ->
         val ui = state ?: return@Scaffold

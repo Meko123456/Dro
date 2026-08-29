@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Classic RemoteViews widget. Each row is a TextClock with its own timeZone, which the system
+  keeps ticking on its own — the app schedules nothing and never wakes for the widget.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/widget_background"
+    android:orientation="vertical"
+    android:paddingHorizontal="16dp"
+    android:paddingVertical="10dp">
+
+    <LinearLayout
+        android:id="@+id/row1"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/city1"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="@color/widget_text"
+            android:textSize="14sp" />
+
+        <TextView
+            android:id="@+id/offset1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:textColor="@color/widget_muted"
+            android:textSize="12sp" />
+
+        <TextClock
+            android:id="@+id/clock1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:format12Hour="h:mm a"
+            android:format24Hour="HH:mm"
+            android:textColor="@color/widget_text"
+            android:textSize="18sp"
+            android:fontFamily="sans-serif-medium" />
+    </LinearLayout>
+    <LinearLayout
+        android:id="@+id/row2"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/city2"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="@color/widget_text"
+            android:textSize="14sp" />
+
+        <TextView
+            android:id="@+id/offset2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:textColor="@color/widget_muted"
+            android:textSize="12sp" />
+
+        <TextClock
+            android:id="@+id/clock2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:format12Hour="h:mm a"
+            android:format24Hour="HH:mm"
+            android:textColor="@color/widget_text"
+            android:textSize="18sp"
+            android:fontFamily="sans-serif-medium" />
+    </LinearLayout>
+    <LinearLayout
+        android:id="@+id/row3"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/city3"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="@color/widget_text"
+            android:textSize="14sp" />
+
+        <TextView
+            android:id="@+id/offset3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:textColor="@color/widget_muted"
+            android:textSize="12sp" />
+
+        <TextClock
+            android:id="@+id/clock3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:format12Hour="h:mm a"
+            android:format24Hour="HH:mm"
+            android:textColor="@color/widget_text"
+            android:textSize="18sp"
+            android:fontFamily="sans-serif-medium" />
+    </LinearLayout>
+    <LinearLayout
+        android:id="@+id/row4"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/city4"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="@color/widget_text"
+            android:textSize="14sp" />
+
+        <TextView
+            android:id="@+id/offset4"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:textColor="@color/widget_muted"
+            android:textSize="12sp" />
+
+        <TextClock
+            android:id="@+id/clock4"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:format12Hour="h:mm a"
+            android:format24Hour="HH:mm"
+            android:textColor="@color/widget_text"
+            android:textSize="18sp"
+            android:fontFamily="sans-serif-medium" />
+    </LinearLayout>
+</LinearLayout>

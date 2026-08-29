@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Dro</string>
+    <string name="widget_description">Home time plus up to three cities, always current, no battery cost</string>
 </resources>
