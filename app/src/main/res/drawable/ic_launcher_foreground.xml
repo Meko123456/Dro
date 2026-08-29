@@ -1,0 +1,13 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp"
+    android:viewportWidth="108" android:viewportHeight="108">
+    <!-- Two overlapping clock faces: home (front) and away (behind), sharing one hour hand. -->
+    <path android:fillColor="#7FB8C9"
+        android:pathData="M64,36 a22,22 0 1 1 0.01,0 z"/>
+    <path android:fillColor="#F4F1EA"
+        android:pathData="M46,50 a24,24 0 1 1 0.01,0 z"/>
+    <path android:strokeColor="#0D3B4C" android:strokeWidth="4" android:strokeLineCap="round"
+        android:pathData="M46,50 L46,34 M46,50 L58,56"/>
+    <path android:fillColor="#0D3B4C"
+        android:pathData="M46,50 a3,3 0 1 1 0.01,0 z"/>
+</vector>
