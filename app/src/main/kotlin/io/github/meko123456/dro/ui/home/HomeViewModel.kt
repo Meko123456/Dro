@@ -3,6 +3,8 @@ package io.github.meko123456.dro.ui.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.github.meko123456.dro.data.SettingsRepository
+import io.github.meko123456.dro.domain.OverlapFinder
+import io.github.meko123456.dro.domain.Segment
 import io.github.meko123456.dro.domain.Settings
 import io.github.meko123456.dro.domain.WorkingHours
 import io.github.meko123456.dro.domain.ZoneCatalog
@@ -17,6 +19,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.stateIn
 import java.time.Instant
+import java.time.LocalDate
 import java.time.ZoneId
 
 /** One clock on screen: the zone, its catalogue entry and its reading relative to home. */
@@ -27,10 +30,22 @@ data class ClockRow(
     val hours: WorkingHours,
 )
 
+/**
+ * @property date the home zone's calendar date at [now]; the overlap strip's axis is this day
+ * @property dayLengthMinutes 1440, or 1380/1500 across a DST change in the home zone
+ * @property nowMinute elapsed minutes since home midnight
+ * @property bars home first, then the cities, each with its working hours on the home axis
+ * @property shared minutes of the day when every zone is at work
+ */
 data class HomeUiState(
     val now: Instant,
     val home: ClockRow,
     val cities: List<ClockRow>,
+    val date: LocalDate,
+    val dayLengthMinutes: Int,
+    val nowMinute: Int,
+    val bars: List<OverlapBar>,
+    val shared: List<Segment>,
 ) {
     companion object {
         fun from(settings: Settings, now: Instant): HomeUiState {
@@ -40,7 +55,20 @@ data class HomeUiState(
                 reading = ZoneClock.read(now, settings.home, zone),
                 hours = settings.hoursFor(zone),
             )
-            return HomeUiState(now = now, home = row(settings.home), cities = settings.cities.map(::row))
+            val home = row(settings.home)
+            val cities = settings.cities.map(::row)
+            val date = now.atZone(settings.home).toLocalDate()
+            val schedules = settings.schedules
+            return HomeUiState(
+                now = now,
+                home = home,
+                cities = cities,
+                date = date,
+                dayLengthMinutes = OverlapFinder.dayLengthMinutes(date, settings.home),
+                nowMinute = OverlapFinder.minuteOf(now, date, settings.home),
+                bars = (listOf(home) + cities).zip(schedules) { r, s -> OverlapBar(r, OverlapFinder.project(date, settings.home, s)) },
+                shared = OverlapFinder.sharedWindows(date, settings.home, schedules),
+            )
         }
     }
 }

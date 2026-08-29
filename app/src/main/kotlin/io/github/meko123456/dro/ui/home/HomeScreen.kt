@@ -53,6 +53,7 @@ fun HomeScreen() {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val twentyFourHour = DateFormat.is24HourFormat(context)
     var showAdd by rememberSaveable { mutableStateOf(false) }
+    var editingZone: String? by rememberSaveable { mutableStateOf(null) }
 
     Scaffold(
         floatingActionButton = {
@@ -89,6 +90,29 @@ fun HomeScreen() {
                     onRemove = { viewModel.removeCity(row.zone) },
                 )
             }
+            item(key = "overlap") {
+                OverlapStrip(
+                    date = ui.date,
+                    home = ui.home.zone,
+                    dayLengthMinutes = ui.dayLengthMinutes,
+                    nowMinute = ui.nowMinute,
+                    bars = ui.bars,
+                    shared = ui.shared,
+                    twentyFourHour = twentyFourHour,
+                    onEditHours = { editingZone = it.zone.id },
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp),
+                )
+            }
+        }
+        val editing = ui.bars.firstOrNull { it.row.zone.id == editingZone }
+        if (editing != null) {
+            WorkingHoursDialog(
+                entry = editing.row.entry,
+                hours = editing.row.hours,
+                twentyFourHour = twentyFourHour,
+                onSave = { viewModel.setHours(editing.row.zone, it); editingZone = null },
+                onDismiss = { editingZone = null },
+            )
         }
         if (showAdd) {
             AddCitySheet(

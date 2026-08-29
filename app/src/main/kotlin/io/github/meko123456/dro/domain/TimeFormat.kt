@@ -20,6 +20,14 @@ object TimeFormat {
     fun amPm(value: LocalTime, twentyFourHour: Boolean): String? =
         if (twentyFourHour) null else if (value.hour < 12) "am" else "pm"
 
+    /** Short form for tight labels: `09:00` / `9am` / `9:30am`. */
+    fun compact(value: LocalTime, twentyFourHour: Boolean): String {
+        if (twentyFourHour) return twentyFour.format(value)
+        val marker = amPm(value, twentyFourHour)
+        val hour = if (value.hour % 12 == 0) 12 else value.hour % 12
+        return if (value.minute == 0) "$hour$marker" else "$hour:${"%02d".format(value.minute)}$marker"
+    }
+
     /** `Sat, 29 Aug` */
     fun date(value: LocalDate): String = date.format(value)
 
