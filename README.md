@@ -60,7 +60,7 @@ overlap finder it should have been from the start.)
 ## Architecture
 
 ```
-domain/   pure Kotlin, 54 unit tests — ZoneClock (local time / day shift / offset label),
+domain/   pure Kotlin, 50 unit tests (54 in the repo) — ZoneClock (local time / day shift / offset label),
           ZoneCatalog (tz database → searchable cities), WorkingHours + OverlapFinder
           (shared window on the home-day axis), Settings + SettingsCodec, TimeFormat
 data/     DataStore preferences: home zone, city list, working-hours overrides
@@ -79,7 +79,7 @@ minutes rather than wall-clock so it stays linear.
 ./gradlew :app:assembleDebug :app:testDebugUnitTest
 ```
 
-Kotlin 2.3, AGP 9, Compose BOM 2026.06, minSdk 26.
+Kotlin 2.4.10, AGP 9.1.1, Gradle 9.7.1, Compose BOM 2026.06, minSdk 26.
 
 ## License
 
