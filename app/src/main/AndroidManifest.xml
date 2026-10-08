@@ -5,7 +5,7 @@
         android:name=".DroApp"
         android:label="@string/app_name"
         android:icon="@mipmap/ic_launcher"
-        android:supportsRtl="true"
+        android:supportsRtl="false"
         android:allowBackup="true"
         android:theme="@style/Theme.Dro">
 
