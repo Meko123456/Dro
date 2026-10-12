@@ -79,7 +79,7 @@ minutes rather than wall-clock so it stays linear.
 ./gradlew :app:assembleDebug :app:testDebugUnitTest
 ```
 
-Kotlin 2.4.10, AGP 9.1.1, Gradle 9.7.1, Compose BOM 2026.06, minSdk 26.
+Kotlin 2.4.20, AGP 9.4.1, Gradle 9.8.0, Compose BOM 2026.09, minSdk 26.
 
 ## License
 
