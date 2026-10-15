@@ -50,8 +50,10 @@ import io.github.meko123456.dro.domain.TimeFormat
 import io.github.meko123456.dro.domain.ZoneClock
 import io.github.meko123456.dro.droApp
 import io.github.meko123456.dro.widget.DroWidget
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.launch
@@ -130,7 +132,21 @@ fun HomeScreen() {
                     onMakeHome = { viewModel.makeHome(row.zone) },
                     onMoveUp = { viewModel.moveCity(index, index - 1) },
                     onMoveDown = { viewModel.moveCity(index, index + 1) },
-                    onRemove = { viewModel.removeCity(row.zone) },
+                    onRemove = {
+                        // Removing a city also forgets the working hours set for it, and Remove
+                        // sits under Move down in the same menu. Offer the way back.
+                        viewModel.removeCity(row.zone)
+                        scope.launch {
+                            val result = snackbar.showSnackbar(
+                                "Removed ${row.entry.city}",
+                                actionLabel = "Undo",
+                                duration = SnackbarDuration.Long,
+                            )
+                            if (result == SnackbarResult.ActionPerformed) {
+                                viewModel.restoreCity(row.zone, index, row.hours)
+                            }
+                        }
+                    },
                 )
             }
             item(key = "overlap") {

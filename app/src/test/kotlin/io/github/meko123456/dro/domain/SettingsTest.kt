@@ -33,6 +33,19 @@ class SettingsTest {
     }
 
     @Test
+    fun `undoing a removal puts the city back in its place with its hours`() {
+        val three = Settings(home = tbilisi, cities = listOf(london, tokyo, newYork)).withHours(tokyo, early)
+        val removed = three.withoutCity(tokyo)
+        assertEquals(three, removed.withCityRestored(tokyo, 1, early))
+        // Default hours are not stored, so they come back as no entry at all.
+        val plain = Settings(home = tbilisi, cities = listOf(london, tokyo, newYork))
+        assertEquals(plain, plain.withoutCity(london).withCityRestored(london, 0, WorkingHours.DEFAULT))
+        // Made home, or added again, in the meantime: left where it is.
+        assertSame(removed, removed.withCityRestored(tbilisi, 0, early))
+        assertSame(three, three.withCityRestored(tokyo, 0, early))
+    }
+
+    @Test
     fun `removing a city also forgets its working hours`() {
         val withHours = base.withHours(london, early)
         assertEquals(early, withHours.hoursFor(london))

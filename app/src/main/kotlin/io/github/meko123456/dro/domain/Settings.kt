@@ -30,6 +30,16 @@ data class Settings(
 
     fun withoutCity(zone: ZoneId): Settings = copy(cities = cities - zone, hours = hours - zone)
 
+    /**
+     * Undoes [withoutCity]: [zone] goes back at [index] with the working hours it had. A zone that
+     * has meanwhile become home or been added again stays where it is.
+     */
+    fun withCityRestored(zone: ZoneId, index: Int, zoneHours: WorkingHours): Settings {
+        if (zone == home || zone in cities) return this
+        val list = cities.toMutableList().apply { add(index.coerceIn(0, size), zone) }
+        return copy(cities = list).withHours(zone, zoneHours)
+    }
+
     fun moved(from: Int, to: Int): Settings {
         if (from == to || from !in cities.indices || to !in cities.indices) return this
         val list = cities.toMutableList()

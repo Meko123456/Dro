@@ -39,6 +39,8 @@ class SettingsRepository(
     suspend fun setHome(zone: ZoneId) = update { it.withHome(zone) }
     suspend fun addCity(zone: ZoneId) = update { it.withCity(zone) }
     suspend fun removeCity(zone: ZoneId) = update { it.withoutCity(zone) }
+    suspend fun restoreCity(zone: ZoneId, index: Int, hours: WorkingHours) =
+        update { it.withCityRestored(zone, index, hours) }
     suspend fun moveCity(from: Int, to: Int) = update { it.moved(from, to) }
     suspend fun setHours(zone: ZoneId, hours: WorkingHours) = update { it.withHours(zone, hours) }
 

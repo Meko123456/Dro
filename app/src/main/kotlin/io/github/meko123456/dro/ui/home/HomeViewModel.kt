@@ -112,6 +112,8 @@ class HomeViewModel(private val repository: SettingsRepository) : ViewModel() {
 
     fun addCity(zone: ZoneId) = viewModelScope.launch { repository.addCity(zone) }
     fun removeCity(zone: ZoneId) = viewModelScope.launch { repository.removeCity(zone) }
+    fun restoreCity(zone: ZoneId, index: Int, hours: WorkingHours) =
+        viewModelScope.launch { repository.restoreCity(zone, index, hours) }
     fun makeHome(zone: ZoneId) = viewModelScope.launch { repository.setHome(zone) }
     fun moveCity(from: Int, to: Int) = viewModelScope.launch { repository.moveCity(from, to) }
     fun setHours(zone: ZoneId, hours: WorkingHours) = viewModelScope.launch { repository.setHours(zone, hours) }
