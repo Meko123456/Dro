@@ -16,6 +16,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -47,7 +48,12 @@ fun AddCitySheet(
     val results = remember(query, all) { ZoneCatalog.search(query, all) }
     val focus = remember { FocusRequester() }
 
-    ModalBottomSheet(onDismissRequest = onDismiss) {
+    // Fully open from the start. The keyboard comes up with the sheet, and half open, the sheet left
+    // room above it for one result.
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+    ) {
         Column(modifier = Modifier.padding(horizontal = 16.dp)) {
             OutlinedTextField(
                 value = query,
