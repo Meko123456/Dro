@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  What the widget picker shows: widget_dro with made-up cities filled in. The widget's own layout
+  leaves the names, offsets and zones for DroWidget.render to fill, so as the preview it showed four
+  rows of one local time with nothing beside them.
+
+  Home is Tbilisi and the cities keep no daylight saving time, nor does Tbilisi, so the written
+  offsets are right all year. Each clock still ticks in its own zone, like the widget's.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/widget_background"
+    android:orientation="vertical"
+    android:paddingHorizontal="16dp"
+    android:paddingVertical="10dp"
+    tools:ignore="HardcodedText">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:text="Tbilisi · home"
+            android:textColor="@color/widget_text"
+            android:textSize="14sp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:text=""
+            android:textColor="@color/widget_muted"
+            android:textSize="12sp" />
+
+        <TextClock
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-medium"
+            android:format12Hour="h:mm a"
+            android:format24Hour="HH:mm"
+            android:textColor="@color/widget_text"
+            android:textSize="18sp"
+            android:timeZone="Asia/Tbilisi" />
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:text="Tokyo"
+            android:textColor="@color/widget_text"
+            android:textSize="14sp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:text="+5h"
+            android:textColor="@color/widget_muted"
+            android:textSize="12sp" />
+
+        <TextClock
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-medium"
+            android:format12Hour="h:mm a"
+            android:format24Hour="HH:mm"
+            android:textColor="@color/widget_text"
+            android:textSize="18sp"
+            android:timeZone="Asia/Tokyo" />
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:text="Singapore"
+            android:textColor="@color/widget_text"
+            android:textSize="14sp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:text="+4h"
+            android:textColor="@color/widget_muted"
+            android:textSize="12sp" />
+
+        <TextClock
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-medium"
+            android:format12Hour="h:mm a"
+            android:format24Hour="HH:mm"
+            android:textColor="@color/widget_text"
+            android:textSize="18sp"
+            android:timeZone="Asia/Singapore" />
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:text="Sao Paulo"
+            android:textColor="@color/widget_text"
+            android:textSize="14sp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:text="-7h"
+            android:textColor="@color/widget_muted"
+            android:textSize="12sp" />
+
+        <TextClock
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-medium"
+            android:format12Hour="h:mm a"
+            android:format24Hour="HH:mm"
+            android:textColor="@color/widget_text"
+            android:textSize="18sp"
+            android:timeZone="America/Sao_Paulo" />
+    </LinearLayout>
+</LinearLayout>
